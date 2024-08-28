@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>资产文本清洗</title>
+</head>
+<style type="text/css">
+    /* 保持原有的样式不变 */
+    body {
+        margin: 0px;
+        background-color: grey;
+    }
+
+    div.btn-group {
+        display: inline-block;
+        width: 15%;
+        height: 300px;
+        vertical-align: top;
+    }
+
+    .btn-group button {
+        background-color: #4CAF50;
+        border: 1px solid green;
+        color: white;
+        padding: 10px 24px;
+        cursor: pointer;
+        width: 100%;
+        display: block;
+    }
+
+    .btn-group button:not(:last-child) {
+        border-bottom: none;
+    }
+
+    .btn-group button:hover {
+        background-color: #3e8e41;
+    }
+
+    textarea {
+        border: 1px solid rgb(128, 0, 107);
+        background-color: rgb(68, 68, 68);
+        color: rgb(16, 224, 86);
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 15px;
+    }
+</style>
+
+<body>
+    <textarea id="history" cols="30" rows="40" placeholder="需要两个输入框时使用" style="width: 15%;"></textarea>
+    <textarea id="new" cols="80" rows="40" placeholder="基本输入位置" style="width: 40%;"></textarea>
+    <div class="btn-group">
+        <button id="quchong" onclick="dataCleaning()" title="示例: 放入文本,IP,子域名...">去重排序求差集</button>
+        <button id="quchong" onclick="dataCleaning2()" title="示例: 放入文本,IP,子域名...">去重(反向)排序求差集</button>
+        <button id="quchong" onclick="getNmapResult()" title="Nmap扫描记录信息提取,将IP与端口合并成URL">Nmap端口提取</button>
+        <button onclick="getIP()" title="提取文本中所有的IP">IP提取</button>
+        <button onclick="getURL()">子域名提取</button>
+        <button onclick="getIP2()" title="示例(支持B段C段): 192.168.7.*;192.168.*.1;192.168.*.*">IP生成</button>
+        <!-- 新增的按钮 -->
+        <button onclick="addSuffix()" title="在每条数据末尾添加指定后缀">添加指定后缀</button>
+        <button onclick="deleteCustomContent()" title="删除每条数据中与输入内容相匹配的部分">删除自定义内容</button>
+        <button onclick="deleteAfterCustomContent()" title="删除每条数据中自定义内容之后的部分">删除自定义之后的内容</button>
+        <button onclick="addToBeginning()" title="在每条数据开头添加指定内容">在开头添加内容</button>
+        <button onclick="addToEnd()" title="在每条数据末尾添加指定内容">在末尾添加内容</button>
+        <button onclick="removeDuplicates()" title="去除重复的行">移除重复数据</button>
+        <button onclick="filterSpecificContent()" title="筛选并返回包含特定内容的行">返回包含特定内容的行</button>
+    </div>
+    <textarea id="result" cols="60" rows="40" placeholder="显示结果位置" style="width: 25%;"></textarea>
+</body>
+
+<script type="text/javascript">
+    var dom_textarea_history = document.getElementById("history")
+    var dom_textarea_new = document.getElementById("new")
+    var dom_textarea_result = document.getElementById("result")
+
+    // 保留原有的函数...
+
+    // 新增的函数
+    function addSuffix() {
+        var suffix = prompt("请输入要添加的后缀：");
+        if (suffix === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.map(line => line.trim() + suffix);
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    function deleteCustomContent() {
+        var content = prompt("请输入要删除的内容：");
+        if (content === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.map(line => line.replace(new RegExp(content, 'g'), ''));
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    function deleteAfterCustomContent() {
+        var content = prompt("请输入自定义内容：");
+        if (content === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.map(line => {
+            var index = line.indexOf(content);
+            return index !== -1 ? line.substring(0, index + content.length) : line;
+        });
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    function addToBeginning() {
+        var content = prompt("请输入要添加到开头的内容：");
+        if (content === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.map(line => content + line.trim());
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    function addToEnd() {
+        var content = prompt("请输入要添加到末尾的内容：");
+        if (content === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.map(line => line.trim() + content);
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    function removeDuplicates() {
+        var lines = dom_textarea_new.value.split("\n");
+        var uniqueLines = [...new Set(lines)];
+        dom_textarea_result.value = uniqueLines.join("\n");
+    }
+
+    function filterSpecificContent() {
+        var content = prompt("请输入要筛选的内容：");
+        if (content === null) return;
+        var lines = dom_textarea_new.value.split("\n");
+        var result = lines.filter(line => line.includes(content));
+        dom_textarea_result.value = result.join("\n");
+    }
+
+    // ... 保留原有的其他函数
+</script>
+
+</html>
