@@ -19,7 +19,7 @@
    ```
    git clone https://github.com/ArrestX/DisPose.git
    ```
-2. 打开 `index.html` 文件在您的浏览器中。
+2. 打开 `数据处理工具(HVV).html` 文件在您的浏览器中。
 3. 开始使用各种文本处理功能!
 
 ## 💡 使用说明
