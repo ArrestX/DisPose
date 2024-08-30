@@ -41,8 +41,8 @@
 - **筛选特定内容**: 返回包含指定内容的行。
 
 ## 📷 界面
-![img_2.png](img/img_2.png)
-![img_1.png](img/img_1.png)
+![img.png](img/img.png)
+![img.png](img/img_1.png)
 
 
 ## 🤝 贡献
