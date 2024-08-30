@@ -3,79 +3,270 @@
 
 <head>
     <meta charset="utf-8">
-    <title>资产文本清洗</title>
+    <title>资产文本清洗工具</title>
+    <style type="text/css">
+        body {
+            margin: 0px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+
+        textarea {
+            border: 1px solid #007bff;
+            background-color: #ffffff;
+            color: #333333;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            padding: 10px;
+            margin-right: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+
+        .btn-group button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-group button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
-<style type="text/css">
-    /* 保持原有的样式不变 */
-    body {
-        margin: 0px;
-        background-color: grey;
-    }
-
-    div.btn-group {
-        display: inline-block;
-        width: 15%;
-        height: 300px;
-        vertical-align: top;
-    }
-
-    .btn-group button {
-        background-color: #4CAF50;
-        border: 1px solid green;
-        color: white;
-        padding: 10px 24px;
-        cursor: pointer;
-        width: 100%;
-        display: block;
-    }
-
-    .btn-group button:not(:last-child) {
-        border-bottom: none;
-    }
-
-    .btn-group button:hover {
-        background-color: #3e8e41;
-    }
-
-    textarea {
-        border: 1px solid rgb(128, 0, 107);
-        background-color: rgb(68, 68, 68);
-        color: rgb(16, 224, 86);
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
-    }
-</style>
 
 <body>
-    <textarea id="history" cols="30" rows="40" placeholder="需要两个输入框时使用" style="width: 15%;"></textarea>
-    <textarea id="new" cols="80" rows="40" placeholder="基本输入位置" style="width: 40%;"></textarea>
+<div class="container">
+    <textarea id="history" cols="30" rows="40" placeholder="需要两个输入框时使用"></textarea>
+    <textarea id="new" cols="80" rows="40" placeholder="基本输入位置"></textarea>
     <div class="btn-group">
-        <button id="quchong" onclick="dataCleaning()" title="示例: 放入文本,IP,子域名...">去重排序求差集</button>
-        <button id="quchong" onclick="dataCleaning2()" title="示例: 放入文本,IP,子域名...">去重(反向)排序求差集</button>
-        <button id="quchong" onclick="getNmapResult()" title="Nmap扫描记录信息提取,将IP与端口合并成URL">Nmap端口提取</button>
+        <button onclick="dataCleaning()" title="示例: 放入文本,IP,子域名...">去重排序求差集</button>
+        <button onclick="dataCleaning2()" title="示例: 放入文本,IP,子域名...">去重(反向)排序求差集</button>
+        <button onclick="getNmapResult()" title="Nmap扫描记录信息提取,将IP与端口合并成URL">Nmap端口提取</button>
         <button onclick="getIP()" title="提取文本中所有的IP">IP提取</button>
         <button onclick="getURL()">子域名提取</button>
         <button onclick="getIP2()" title="示例(支持B段C段): 192.168.7.*;192.168.*.1;192.168.*.*">IP生成</button>
-        <!-- 新增的按钮 -->
-        <button onclick="addSuffix()" title="在每条数据末尾添加指定后缀">添加指定后缀</button>
-        <button onclick="deleteCustomContent()" title="删除每条数据中与输入内容相匹配的部分">删除自定义内容</button>
-        <button onclick="deleteAfterCustomContent()" title="删除每条数据中自定义内容之后的部分">删除自定义之后的内容</button>
-        <button onclick="addToBeginning()" title="在每条数据开头添加指定内容">在开头添加内容</button>
-        <button onclick="addToEnd()" title="在每条数据末尾添加指定内容">在末尾添加内容</button>
-        <button onclick="removeDuplicates()" title="去除重复的行">移除重复数据</button>
-        <button onclick="filterSpecificContent()" title="筛选并返回包含特定内容的行">返回包含特定内容的行</button>
+        <button onclick="addSuffix()">添加指定后缀</button>
+        <button onclick="deleteCustomContent()">删除自定义内容</button>
+        <button onclick="deleteAfterCustomContent()">删除自定义之后的内容</button>
+        <button onclick="addToBeginning()">在开头添加内容</button>
+        <button onclick="addToEnd()">在末尾添加内容</button>
+        <button onclick="removeDuplicates()">移除重复数据</button>
+        <button onclick="filterSpecificContent()">返回包含特定内容的行</button>
     </div>
-    <textarea id="result" cols="60" rows="40" placeholder="显示结果位置" style="width: 25%;"></textarea>
-</body>
+    <textarea id="result" cols="60" rows="40" placeholder="显示结果位置"></textarea>
+</div>
 
 <script type="text/javascript">
-    var dom_textarea_history = document.getElementById("history")
-    var dom_textarea_new = document.getElementById("new")
-    var dom_textarea_result = document.getElementById("result")
+    var dom_textarea_history = document.getElementById("history");
+    var dom_textarea_new = document.getElementById("new");
+    var dom_textarea_result = document.getElementById("result");
 
-    // 保留原有的函数...
+    function getIP2() {
+        var list_result = [];
+        var list_new_text = unique(dom_textarea_new.value.split("\n"));
+        var reg = /\*/g;
+        for (const key in list_new_text) {
+            var str = list_new_text[key];
+            if (str.match(reg) != null) {
+                var num = str.match(reg).length;
+                if (num == 1) {
+                    for (var i = 0; i < 256; i++) {
+                        list_result.push(str.replace("*", i));
+                    }
+                    console.log("第" + key + "行: (" + list_new_text[key] + ")识别成功");
+                } else if (num == 2) {
+                    for (var i = 0; i < 256; i++) {
+                        var str2 = str.replace("*", i);
+                        for (var j = 0; j < 256; j++) {
+                            list_result.push(str2.replace("*", j));
+                        }
+                    }
+                    console.log("第" + key + "行: (" + list_new_text[key] + ")识别成功");
+                } else {
+                    alert("不支持A段生成");
+                }
+            } else {
+                console.log("第" + key + "行: (" + list_new_text[key] + ")未识别到 * 号标记");
+            }
+        }
+        dom_textarea_result.value = "---<" + list_result.length + ">---\n" + list_result.join("\n");
+    }
 
-    // 新增的函数
+    function getURL() {
+        var list_result = [];
+        var reg = /([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}/g;
+        var list_new_text = dom_textarea_new.value.split("\n");
+        for (var i = 0; i < list_new_text.length; i++) {
+            var list_text = list_new_text[i].match(reg);
+            if (list_text != null) {
+                list_result.push.apply(list_result, list_text);
+            } else {
+                console.log("第" + (i + 1) + "行未提取到URL");
+            }
+        }
+        list_result = unique(list_result);
+        dom_textarea_result.value = "---提取URL数量<" + list_result.length + ">---\n" + list_result.join("\n");
+    }
+
+    function getIP() {
+        var list_result = [];
+        var reg = /(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[0-9])\.((1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.){2}(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)/g;
+        var list_new_text = dom_textarea_new.value.split("\n");
+        for (var i = 0; i < list_new_text.length; i++) {
+            var list_text = list_new_text[i].match(reg);
+            if (list_text != null) {
+                list_result.push.apply(list_result, list_text);
+            }
+        }
+        list_result = unique(list_result);
+
+        var cduan_result_list = [];
+        for (var i = 0; i < list_result.length; i++) {
+            var temp = list_result[i].substr(0, list_result[i].lastIndexOf(".")) + ".0/24";
+            cduan_result_list.push(temp);
+        }
+
+        var dic = {};
+        for (const key in cduan_result_list) {
+            if (dic.hasOwnProperty(cduan_result_list[key])) {
+                dic[cduan_result_list[key]] += 1;
+            } else {
+                dic[cduan_result_list[key]] = 1;
+            }
+        }
+        var dic2 = Object.keys(dic).sort(function (a, b) { return dic[b] - dic[a]; });
+
+        dom_textarea_result.value = "---提取IP数量<" + list_result.length + ">---\n";
+        for (const key_c in dic2) {
+            for (const key in list_result) {
+                if (list_result[key].substr(0, list_result[key].lastIndexOf(".")) + ".0/24" == dic2[key_c]) {
+                    dom_textarea_result.value += list_result[key] + "\n";
+                }
+            }
+        }
+
+        dom_textarea_result.value += "\n\n\n---提取C段数量<" + dic2.length + ">---\n";
+        for (const key in dic2) {
+            if (dic[dic2[key]] > 2) {
+                dom_textarea_result.value += dic2[key] + "(" + dic[dic2[key]] + ")\n";
+            }
+        }
+    }
+
+    function getNmapResult() {
+        var list_result = [];
+        var list_new_text = dom_textarea_new.value.split("\n");
+        var reg_ip = /((1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[0-9])\.((1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.){2}(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d))/;
+        var reg_port = /(\d*)\/tcp/;
+        for (const i in list_new_text) {
+            var ip, port;
+            let temp = list_new_text[i];
+            var list_text = temp.match(reg_ip);
+            if (list_text != null) {
+                ip = list_text[1];
+            } else {
+                if (reg_port.test(temp)) {
+                    var list_text = temp.match(reg_port);
+                    port = list_text[1];
+                    if (ip) {
+                        list_result.push("http://" + ip + ":" + port);
+                    }
+                }
+            }
+        }
+        list_result = unique(list_result);
+        dom_textarea_result.value = "---合成地址数量<" + list_result.length + ">---\n" + list_result.join("\n");
+    }
+
+    function dataCleaning() {
+        var list_history_text = unique(dom_textarea_history.value.split("\n"));
+        var list_new_text = unique(dom_textarea_new.value.split("\n"));
+
+        let diff = list_history_text.filter(function (val) { return list_new_text.indexOf(val) === -1 });
+        let diff2 = list_new_text.filter(function (val) { return list_history_text.indexOf(val) === -1 });
+        let intersection = list_history_text.filter(function (val) { return list_new_text.indexOf(val) > -1 });
+
+        dom_textarea_history.value = list_history_text.join("\n");
+        dom_textarea_new.value = list_new_text.join("\n");
+        dom_textarea_result.value = "-------文本框1_差集<" + diff.length + ">-------\n" + diff.join("\n");
+        dom_textarea_result.value += "\n\n\n-------文本框2_差集<" + diff2.length + ">-------\n" + diff2.join("\n");
+        dom_textarea_result.value += "\n\n\n-------交集<" + intersection.length + ">-------\n" + intersection.join("\n");
+    }
+
+    function dataCleaning2() {
+        var list_history_text = unique2(dom_textarea_history.value.split("\n"));
+        var list_new_text = unique2(dom_textarea_new.value.split("\n"));
+
+        let diff = list_history_text.filter(function (val) { return list_new_text.indexOf(val) === -1 });
+        let diff2 = list_new_text.filter(function (val) { return list_history_text.indexOf(val) === -1 });
+        let intersection = list_history_text.filter(function (val) { return list_new_text.indexOf(val) > -1 });
+
+        dom_textarea_history.value = list_history_text.join("\n");
+        dom_textarea_new.value = list_new_text.join("\n");
+        dom_textarea_result.value = "-------文本框1_差集<" + diff.length + ">-------\n" + diff.join("\n");
+        dom_textarea_result.value += "\n\n\n-------文本框2_差集<" + diff2.length + ">-------\n" + diff2.join("\n");
+        dom_textarea_result.value += "\n\n\n-------交集<" + intersection.length + ">-------\n" + intersection.join("\n");
+    }
+
+    function unique(arr) {
+        var result = [],
+            hash = {};
+        for (var i = 0, elem; (elem = arr[i]) != null; i++) {
+            elem = elem.trim();
+            if (elem != "") {
+                if (!hash[elem]) {
+                    result.push(elem);
+                    hash[elem] = true;
+                }
+            }
+        }
+        result = result.sort(function (a, b) { return a.localeCompare(b) });
+        let num = Math.floor(Math.random() * 10);
+        if (num % 2 === 0) {
+            return result;
+        } else {
+            return result.sort(function (a, b) { return a.length - b.length });
+        }
+    }
+
+    function unique2(arr) {
+        var result = [],
+            hash = {};
+        for (var i = 0, elem; (elem = arr[i]) != null; i++) {
+            elem = elem.trim();
+            elem = reverseString(elem);
+            if (elem != "") {
+                if (!hash[elem]) {
+                    result.push(elem);
+                    hash[elem] = true;
+                }
+            }
+        }
+        var list2 = result.sort(function (a, b) { return a.localeCompare(b) });
+        for (const i in list2) {
+            list2.splice(i, 1, reverseString(list2[i]));
+        }
+        return list2;
+    }
+
+    function reverseString(str) {
+        return str.split('').reverse().join('');
+    }
+
     function addSuffix() {
         var suffix = prompt("请输入要添加的后缀：");
         if (suffix === null) return;
@@ -132,8 +323,7 @@
         var result = lines.filter(line => line.includes(content));
         dom_textarea_result.value = result.join("\n");
     }
-
-    // ... 保留原有的其他函数
 </script>
+</body>
 
 </html>
